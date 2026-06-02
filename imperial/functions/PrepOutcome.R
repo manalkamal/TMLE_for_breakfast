@@ -4,7 +4,7 @@
 PrepOutComp <- function(FUdataset){
   
   FUdataset |> 
-    select(ID,
+    select(id,
            Primary_outcome = starts_with("Primary_"),
            CVD_date = starts_with("CVD_date"),
            Allcause_mort = contains("cause_mort_"),
@@ -32,11 +32,11 @@ PrepOutComp <- function(FUdataset){
       # across(.cols = contains("_date"),
       #        .fns = ~if_else(is.na(.), 0, 1))
     )  |> 
-    select(ID,
+    select(id,
            EventType, 
            CVD_date,
            death_date) |> 
-    pivot_longer(cols = -c("ID", "EventType"),
+    pivot_longer(cols = -c("id", "EventType"),
                  names_to = "Outcome",
                  values_to = "date") |> 
     filter(!is.na(date), !is.na(EventType)) |> 
