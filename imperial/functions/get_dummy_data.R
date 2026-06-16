@@ -9,7 +9,8 @@ get_dummy_data <- function(filename){
     dummydf1 <- readxl::read_xlsx(path = filename, sheet = 1) |> 
         ## FILTER TO GET TRIAL POPULATION
         ## FILTER FOR PRIMARY OUTCOME ONLY
-        filter(Include_or_not == "Include", 
+        filter(
+          #Include_or_not == "Include", 
                CVD_related_death != "Not CVD-related") 
     
     HBC <- readxl::read_xlsx(path = filename, sheet = 2) %>% 
@@ -43,50 +44,62 @@ get_dummy_data <- function(filename){
     Degludec_0 <- BaseDrugs |> 
         filter(Treatment == "Degludec")
 
-    FUDrugs <- dummydf1 |> 
-        select(id, starts_with("Deglud_"), starts_with("glarg_")) |> 
-      mutate(
-        across(.cols = contains("_date"),
-               .fns = ~as.numeric(.x)),
-        across(.cols = contains("_date"),
-               .fns = ~as.Date(.x, origin = "1900-01-01"))) |>  
-            # across(.cols = ends_with("_date"),
-            #        .fns = ~ifelse(is.na(.), 0, 1))
-       # ) |> 
-        pivot_longer(cols = -c("id"),
-                     names_to = "Treatment",
-                     values_to = "date") |> 
-        filter(!is.na(date)) |> 
-        mutate(Treatment = case_when(
-                   str_detect(Treatment, "Deglud") ~ "Degludec",
-                   str_detect(Treatment, "glarg_") ~ "Glargine"
-               ))  
+    # FUDrugs <- dummydf1 |> 
+    #     select(id, starts_with("Deglud_"), starts_with("glarg_")) |> 
+    #   mutate(
+    #     across(.cols = contains("_date"),
+    #            .fns = ~as.numeric(.x)),
+    #     across(.cols = contains("_date"),
+    #            .fns = ~as.Date(.x, origin = "1900-01-01"))) |>  
+    #         # across(.cols = ends_with("_date"),
+    #         #        .fns = ~ifelse(is.na(.), 0, 1))
+    #    # ) |> 
+    #     pivot_longer(cols = -c("id"),
+    #                  names_to = "Treatment",
+    #                  values_to = "date") |> 
+    #     filter(!is.na(date)) |> 
+    #     mutate(Treatment = case_when(
+    #                str_detect(Treatment, "Deglud") ~ "Degludec",
+    #                str_detect(Treatment, "glarg_") ~ "Glargine"
+    #            ))  
     
     
     
-    Glargine_FU <- FUDrugs |> 
-        filter(Treatment == "Glargine")
+    # Glargine_FU <- FUDrugs |> 
+    #     filter(Treatment == "Glargine")
+    # 
+    # Degludec_FU <- FUDrugs |> 
+    #     filter(Treatment == "Degludec")    
+    # 
+    # 
+    # Glargine <- 
+    #     Glargine_FU |> 
+    #     #bind_rows(Glargine_0, Glargine_FU) |> 
+    #     select(-Treatment) |> 
+    #     setDT()
+    # 
+    # Degludec <- 
+    #     Degludec_FU |> 
+    #     #bind_rows(Degludec_0, Degludec_FU) |> 
+    #     select(-Treatment) |> 
+    #     setDT()
 
-    Degludec_FU <- FUDrugs |> 
-        filter(Treatment == "Degludec")    
     
-
-    Glargine <- 
-        Glargine_FU |> 
-        #bind_rows(Glargine_0, Glargine_FU) |> 
-        select(-Treatment) |> 
-        setDT()
-
-    Degludec <- 
-        Degludec_FU |> 
-        #bind_rows(Degludec_0, Degludec_FU) |> 
-        select(-Treatment) |> 
-        setDT()
-
+    Degludec <- readxl::read_xlsx(path = filename, sheet = "degludec") %>% 
+      mutate(date = ymd(date)) %>% 
+      setDT()
+    #names(Degludec) <- c("id","date")
+    
+    Glargine <- readxl::read_xlsx(path = filename, sheet = "glargine") %>% 
+      mutate(date = ymd(date)) %>% 
+      setDT()
+    #names(Glargine) <- c("id","date")
+    
+    
     timevar_data <- list(Degludec = Degludec, 
-                         Glargine = Glargine)
-                         # HBC = HBC,
-                         # BMI = BMI)
+                         Glargine = Glargine,
+                         HBC = HBC,
+                         BMI = BMI)
 
     
     ## CENSORING & OUTCOME & COMPETING EVENTS DATASET ===========
