@@ -69,6 +69,7 @@ x <- run_rtmle(x,
 x$models
 
 
-
+x$prepared_data |> 
+  select(starts_with("Y_"), starts_with("Dead_"), starts_with("Censored_")) |> View()
 
 
