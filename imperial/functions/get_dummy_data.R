@@ -14,16 +14,16 @@ get_dummy_data <- function(filename){
     
     HBC <- readxl::read_xlsx(path = filename, sheet = 2) %>% 
       mutate(HBC_date = ymd(HBC_date))
-    names(HBC) <- c("ID","date","value")
+    names(HBC) <- c("id","date","value")
     
     BMI <- readxl::read_xlsx(path = filename, sheet = 3) %>% 
       mutate(BMI_date = ymd(BMI_date))
-    names(BMI) <- c("ID","date","value")
+    names(BMI) <- c("id","date","value")
     
     ## PREPARE & PIVOT TABLES SO THAT DATES ARE ALL IN ONE COLUMN
     ## BASELINE DATASET  ===========
     BaselineDataset <- dummydf1 |> 
-        select(ID, Age, clean_sex, Date) |> 
+        select(id, Age, clean_sex, Date) |> 
         mutate(clean_sex = case_when(clean_sex == 1 ~ 0,
                                      clean_sex == 2 ~ 1),
               start_followup_date = as.Date(Date)
@@ -33,7 +33,7 @@ get_dummy_data <- function(filename){
 
     ## TREATMENT DATASET  ===========
     BaseDrugs <- dummydf1 |> 
-        select(ID, date = Date, Treatment = Drug_grouping) |> 
+        select(id, date = Date, Treatment = Drug_grouping) |> 
         mutate(Treatment = str_replace(Treatment, " only", ""))
 
 
@@ -44,7 +44,7 @@ get_dummy_data <- function(filename){
         filter(Treatment == "Degludec")
 
     FUDrugs <- dummydf1 |> 
-        select(ID, starts_with("Deglud_"), starts_with("glarg_")) |> 
+        select(id, starts_with("Deglud_"), starts_with("glarg_")) |> 
       mutate(
         across(.cols = contains("_date"),
                .fns = ~as.numeric(.x)),
@@ -53,7 +53,7 @@ get_dummy_data <- function(filename){
             # across(.cols = ends_with("_date"),
             #        .fns = ~ifelse(is.na(.), 0, 1))
        # ) |> 
-        pivot_longer(cols = -c("ID"),
+        pivot_longer(cols = -c("id"),
                      names_to = "Treatment",
                      values_to = "date") |> 
         filter(!is.na(date)) |> 
@@ -84,9 +84,9 @@ get_dummy_data <- function(filename){
         setDT()
 
     timevar_data <- list(Degludec = Degludec, 
-                         Glargine = Glargine,
-                         HBC = HBC,
-                         BMI = BMI)
+                         Glargine = Glargine)
+                         # HBC = HBC,
+                         # BMI = BMI)
 
     
     ## CENSORING & OUTCOME & COMPETING EVENTS DATASET ===========
@@ -94,49 +94,49 @@ get_dummy_data <- function(filename){
     ### CENSORING DATASET 
 
     CensoredData <- dummydf1 |> 
-        select(ID) |> 
+        select(id) |> 
         mutate(date = ymd("2024-12-31")) |> 
         setDT()
     
     ### OUTCOME & COMPETING EVENTS DATASET
 
     Outcome_6 <- dummydf1 |> 
-        select(ID,
+        select(id,
                starts_with("Primary_"),
                starts_with("CVD_date"),
                contains("cause_mort_"),
                death_date) |>
-        select(ID, ends_with("_6months"), death_date) |> 
+        select(id, ends_with("_6months"), death_date) |> 
         PrepOutComp()
 
 
     Outcome_12 <- dummydf1 |> 
-        select(ID,
+        select(id,
                starts_with("Primary_"),
                starts_with("CVD_date"),
                contains("cause_mort_"),
                death_date) |>
-        select(ID, ends_with("_12months"), death_date) |> 
+        select(id, ends_with("_12months"), death_date) |> 
         PrepOutComp()
 
 
     Outcome_18 <- dummydf1 |> 
-        select(ID,
+        select(id,
                starts_with("Primary_"),
                starts_with("CVD_date"),
                contains("cause_mort_"),
                death_date) |>
-        select(ID, ends_with("_18months"), death_date) |> 
+        select(id, ends_with("_18months"), death_date) |> 
         PrepOutComp()
 
 
     Outcome_24 <- dummydf1 |> 
-        select(ID,
+        select(id,
                starts_with("Primary_"),
                starts_with("CVD_date"),
                contains("cause_mort_"),
                death_date) |>
-        select(ID, ends_with("_24months"), death_date) |> 
+        select(id, ends_with("_24months"), death_date) |> 
         PrepOutComp()
 
     
@@ -147,10 +147,10 @@ get_dummy_data <- function(filename){
 
     OutcomeData <- ACMOutcomeData |> 
         filter(EventType == "PrimaryOutcome") |> 
-        group_by(ID) |>
+        group_by(id) |>
         mutate(date = min(date)) |> 
         ungroup() |> 
-        distinct(ID, date) |> 
+        distinct(id, date) |> 
         setDT()
 
 
@@ -158,10 +158,10 @@ get_dummy_data <- function(filename){
 
     CompetingData <- ACMOutcomeData |> 
         filter(EventType == "ACM") |> 
-        group_by(ID) |>
+        group_by(id) |>
         mutate(date = min(date)) |> 
         ungroup() |> 
-        distinct(ID, date) |> 
+        distinct(id, date) |> 
         setDT()
 
 

@@ -11,7 +11,7 @@ get_test_rtmle <- function(dummy_data){
 
     tau <- 5
     x <- rtmle_init(intervals = tau,
-                    name_id = "ID",
+                    name_id = "id",
                     name_outcome = "Y",
                     name_competing = "Dead",
                     name_censoring = "Censored",
