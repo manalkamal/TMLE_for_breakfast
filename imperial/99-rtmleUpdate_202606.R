@@ -38,7 +38,9 @@ x <- add_baseline_data(x, data = dummy_data$baseline_data)
 
 ## PREPARE THE DATA 
 x <- long_to_wide(x,
-                  start_followup_date = "start_followup_date")
+                  start_followup_date = "start_followup_date",
+                  Glargine=list(variable = "Glargine", method="event_interval"),
+                  Degludec=list(variable = "Degludec", method="event_interval"))
 
 ## Check id = 4 or id = 6:
 longdata <- dummy_data[["timevar_data"]][["Glargine"]]
